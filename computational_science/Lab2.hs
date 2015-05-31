@@ -49,12 +49,5 @@ zeidelStep a b xk =
 converges :: Double -> Vector Double -> Vector Double -> Bool
 converges eps x y = V.maximum (diff x y) >= eps
 
-takeWhile' :: (a -> a -> Bool) -> [a] -> [a]
-takeWhile' _ []  = []
-takeWhile' _ [x] = [x]
-takeWhile' p (x:y:ys)
-    | p x y     = x : takeWhile' p (y:ys)
-    | otherwise = [x]
-
 sum' :: Num a => Int -> Int -> (Int -> a) -> a
 sum' from to f = sum $ f <$> [from..to]

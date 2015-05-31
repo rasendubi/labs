@@ -20,6 +20,7 @@ executable computational-science
   other-modules:       Lab1
                      , Lab2
                      , Lab3
+                     , Lab4
                      , Utils
   ghc-options:         -Wall
   -- other-extensions:    

@@ -19,6 +19,7 @@ module Utils
     , identity
     , mul
     , for
+    , takeWhile'
     ) where
 
 import Prelude hiding (mapM_)
@@ -96,3 +97,10 @@ mul x y =
 
 for :: Functor f => f a -> (a -> b) -> f b
 for = flip fmap
+
+takeWhile' :: (a -> a -> Bool) -> [a] -> [a]
+takeWhile' _ []  = []
+takeWhile' _ [x] = [x]
+takeWhile' p (x:y:ys)
+    | p x y     = x : takeWhile' p (y:ys)
+    | otherwise = [x]
