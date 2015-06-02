@@ -21,11 +21,15 @@ executable computational-science
                      , Lab2
                      , Lab3
                      , Lab4
+                     , Lab5
                      , Utils
   ghc-options:         -Wall
+                       -fno-warn-name-shadowing
+                       -fno-warn-unused-do-bind
   -- other-extensions:    
   build-depends:       base >=4.7 && <4.8
                      , vector
                      , here
+                     , easyplot
   -- hs-source-dirs:      
   default-language:    Haskell2010
