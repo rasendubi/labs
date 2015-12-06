@@ -22,6 +22,7 @@ executable computational-science
                      , Lab3
                      , Lab4
                      , Lab5
+                     , Lab6
                      , Utils
   ghc-options:         -Wall
                        -fno-warn-name-shadowing

@@ -5,6 +5,7 @@ import qualified Lab2
 import qualified Lab3
 import qualified Lab4
 import qualified Lab5
+import qualified Lab6
 
 main :: IO ()
-main = Lab5.main
+main = Lab6.main
