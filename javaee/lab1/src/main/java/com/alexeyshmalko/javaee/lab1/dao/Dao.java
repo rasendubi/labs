@@ -3,9 +3,7 @@ package com.alexeyshmalko.javaee.lab1.dao;
 import static com.alexeyshmalko.javaee.lab1.Utils.join;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public abstract class Dao<T extends Entity> {
 	private final Connection connection;
@@ -129,20 +127,8 @@ public abstract class Dao<T extends Entity> {
 	}
 
 	private String selectQuery() {
-		final String tableName = tableName();
-
-		StringBuilder sql = new StringBuilder();
-		sql.append("SELECT ");
-
-		ArrayList<String> values = new ArrayList<>();
-		for (String field : getFields()) {
-			values.add(tableName + "." + field);
-		}
-		sql.append(join(values, ", "));
-
-		sql.append(" ");
-		sql.append(getSelectConstraints());
-		return sql.toString();
+		return "SELECT * FROM " + tableName() + " " +
+				getSelectConstraints();
 	}
 
 	private PreparedStatement deleteStatement(long id) throws SQLException {
@@ -178,15 +164,28 @@ public abstract class Dao<T extends Entity> {
 		}
 	}
 
+	private final List<T> parseResultSet(ResultSet resultSet) throws SQLException {
+		Map<Long, T> values = new HashMap<>();
+		while (resultSet.next()) {
+			long id = resultSet.getLong("id");
+
+			T value = values.get(id);
+			value = updateValue(value, resultSet);
+			value.id = id;
+			values.put(id, value);
+		}
+		return new ArrayList<>(values.values());
+	}
+
 	protected abstract String tableName();
 
 	protected abstract List<String> getFields();
 
-	protected abstract void fillStatement(PreparedStatement statement, T entity);
+	protected abstract void fillStatement(PreparedStatement statement, T entity) throws SQLException;
 
 	protected abstract void saveRelations(Connection connection, T entity);
 
 	protected abstract String getSelectConstraints();
 
-	protected abstract List<T> parseResultSet(ResultSet resultSet);
+	protected abstract T updateValue(T value, ResultSet resultSet) throws SQLException;
 }
