@@ -1,6 +1,6 @@
 package com.alexeyshmalko.javaee.lab1.dao;
 
-import com.alexeyshmalko.javaee.lab1.Utils;
+import static com.alexeyshmalko.javaee.lab1.Utils.join;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -14,7 +14,7 @@ public abstract class Dao<T extends Entity> {
 		this.connection = connection;
 	}
 
-	public T saveUpdate(T entity) throws SQLException {
+	public final T saveUpdate(T entity) throws SQLException {
 		return entity.id == null ? save(entity) : update(entity);
 	}
 
@@ -26,7 +26,7 @@ public abstract class Dao<T extends Entity> {
 			try {
 				connection.setAutoCommit(false);
 				statement.executeUpdate();
-				saveRelations(entity);
+				saveRelations(connection, entity);
 				connection.commit();
 			} finally {
 				connection.setAutoCommit(autocommit);
@@ -58,17 +58,28 @@ public abstract class Dao<T extends Entity> {
 	}
 
 	public final T findOne(long id) throws SQLException {
-//		try (PreparedStatement statement = selectStatement(id)) {
-//			ResultSet resultSet = statement.executeQuery();
-//			while (resultSet.next()) {
-//
-//			}
-//		}
-		return null;
+		try (PreparedStatement statement = selectStatement(id)) {
+			ResultSet resultSet = statement.executeQuery();
+			List<T> list = parseResultSet(resultSet);
+			return list.iterator().next();
+		}
+	}
+
+	public final List<T> findAll() throws SQLException {
+		try (PreparedStatement statement = selectAllStatement()) {
+			ResultSet resultSet = statement.executeQuery();
+			return parseResultSet(resultSet);
+		}
 	}
 
 	public final void delete(T entity) throws SQLException {
-		try (PreparedStatement statement = deleteStatement(entity)) {
+		try (PreparedStatement statement = deleteStatement(entity.id)) {
+			statement.executeUpdate();
+		}
+	}
+
+	public final void deleteAll() throws SQLException {
+		try (PreparedStatement statement = deleteAllStatement()) {
 			statement.executeUpdate();
 		}
 	}
@@ -78,9 +89,9 @@ public abstract class Dao<T extends Entity> {
 				"INSERT INTO " +
 				tableName() +
 				" (" +
-				Utils.join(getFields(), ", ") +
+				join(getFields(), ", ") +
 				") VALUES (" +
-				Utils.join(Collections.nCopies(getFields().size(), "?"), ", ") +
+				join(Collections.nCopies(getFields().size(), "?"), ", ") +
 				")";
 
 		PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -99,42 +110,54 @@ public abstract class Dao<T extends Entity> {
 			values.add(field + "=?");
 		}
 
-		sql.append(Utils.join(values, ", "));
+		sql.append(join(values, ", "));
 		sql.append(" WHERE id=?");
 
-		// Can't use try-with-resources because I'm returning from try.
 		PreparedStatement statement = connection.prepareStatement(sql.toString());
 		fillStatementOrClose(statement, entity);
 		return statement;
 	}
 
 	private PreparedStatement selectStatement(long id) throws SQLException {
-		// Can't use try-with-resources because I'm returning from try.
-		PreparedStatement statement = connection.prepareStatement(getSelectQuery());
-		try {
-			statement.setLong(1, id);
-			return statement;
-		} catch (Exception e) {
-			statement.close();
-			throw e;
-		}
+		PreparedStatement statement = connection.prepareStatement(selectQuery() + " WHERE " + tableName() + ".id=?");
+		setIdOrClose(statement, id);
+		return statement;
 	}
 
-	private PreparedStatement deleteStatement(T entity) throws SQLException {
+	private PreparedStatement selectAllStatement() throws SQLException {
+		return connection.prepareStatement(selectQuery());
+	}
+
+	private String selectQuery() {
+		final String tableName = tableName();
+
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT ");
+
+		ArrayList<String> values = new ArrayList<>();
+		for (String field : getFields()) {
+			values.add(tableName + "." + field);
+		}
+		sql.append(join(values, ", "));
+
+		sql.append(" ");
+		sql.append(getSelectConstraints());
+		return sql.toString();
+	}
+
+	private PreparedStatement deleteStatement(long id) throws SQLException {
 		String sql =
 				"DELETE FROM " +
 				tableName() +
 				" WHERE id=?";
 
-		// Can't use try-with-resources because I'm returning from try.
 		PreparedStatement statement = connection.prepareStatement(sql);
-		try {
-			statement.setLong(1, entity.id);
-			return statement;
-		} catch (Exception e) {
-			statement.close();
-			throw e;
-		}
+		setIdOrClose(statement, id);
+		return statement;
+	}
+
+	private PreparedStatement deleteAllStatement() throws SQLException {
+		return connection.prepareStatement("DELETE FROM " + tableName());
 	}
 
 	private void fillStatementOrClose(PreparedStatement statement, T entity) throws SQLException {
@@ -146,13 +169,24 @@ public abstract class Dao<T extends Entity> {
 		}
 	}
 
-	protected abstract void saveRelations(T entity);
-
-	protected abstract void fillStatement(PreparedStatement statement, T entity);
-
-	protected abstract List<String> getFields();
+	private static void setIdOrClose(PreparedStatement statement, long id) throws SQLException {
+		try {
+			statement.setLong(1, id);
+		} catch (Exception e) {
+			statement.close();
+			throw e;
+		}
+	}
 
 	protected abstract String tableName();
 
-	protected abstract String getSelectQuery();
+	protected abstract List<String> getFields();
+
+	protected abstract void fillStatement(PreparedStatement statement, T entity);
+
+	protected abstract void saveRelations(Connection connection, T entity);
+
+	protected abstract String getSelectConstraints();
+
+	protected abstract List<T> parseResultSet(ResultSet resultSet);
 }
