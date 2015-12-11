@@ -164,7 +164,7 @@ public abstract class Dao<T extends Entity> {
 		}
 	}
 
-	private final List<T> parseResultSet(ResultSet resultSet) throws SQLException {
+	private List<T> parseResultSet(ResultSet resultSet) throws SQLException {
 		Map<Long, T> values = new HashMap<>();
 		while (resultSet.next()) {
 			long id = resultSet.getLong("id");

@@ -1,8 +1,8 @@
 package com.alexeyshmalko.javaee.lab1.db.impl;
 
+import com.alexeyshmalko.javaee.lab1.LazyConst;
 import com.alexeyshmalko.javaee.lab1.dao.Dao;
 import com.alexeyshmalko.javaee.lab1.entity.Manager;
-import com.alexeyshmalko.javaee.lab1.entity.Programmer;
 import com.alexeyshmalko.javaee.lab1.entity.Project;
 
 import java.sql.*;
@@ -34,8 +34,7 @@ public class ManagerDao extends Dao<Manager> {
 
 	@Override
 	protected String getSelectConstraints() {
-		return "LEFT JOIN project ON manager.id = project.manager_id " +
-				"LEFT JOIN programmer ON programmer.project_id = project.id";
+		return "LEFT JOIN project ON manager.id = project.manager_id";
 	}
 
 	@Override
@@ -47,23 +46,12 @@ public class ManagerDao extends Dao<Manager> {
 
 		Long project_id = resultSet.getLong(3);
 		if (project_id != 0) {
-			Project project = value.projects.get(project_id);
-			if (project == null) {
-				project = new Project();
-				project.id = project_id;
-				project.name = resultSet.getString(4);
-				project.manager = value;
-				value.projects.put(project_id, project);
-			}
+			final Project project = new Project();
+			project.id = project_id;
+			project.name = resultSet.getString(4);
+			project.manager = value;
 
-			Long programmer_id = resultSet.getLong(6);
-			if (programmer_id != 0) {
-				Programmer programmer = new Programmer();
-				programmer.id = programmer_id;
-				programmer.name = resultSet.getString(7);
-				programmer.project = project;
-				project.programmers.add(programmer);
-			}
+			value.projects.add(new LazyConst<>(project));
 		}
 
 		return value;

@@ -1,16 +1,17 @@
 package com.alexeyshmalko.javaee.lab1.entity;
 
+import com.alexeyshmalko.javaee.lab1.LazyEntity;
 import com.alexeyshmalko.javaee.lab1.dao.Entity;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Manager extends Entity {
 	public String name;
-	public Map<Long, Project> projects = new HashMap<>();
+	public List<LazyEntity<Project>> projects = new ArrayList<>();
 
 	@Override
 	public String toString() {
-		return "{ " + super.toString() + ", name=" + name + ", projects=" + projects.values() + " }";
+		return "{ " + super.toString() + ", name=" + name + ", projects=" + projects + " }";
 	}
 }
