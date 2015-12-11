@@ -59,7 +59,7 @@ public abstract class Dao<T extends Entity> {
 		try (PreparedStatement statement = selectStatement(id)) {
 			ResultSet resultSet = statement.executeQuery();
 			List<T> list = parseResultSet(resultSet);
-			return list.iterator().next();
+			return list.isEmpty() ? null : list.iterator().next();
 		}
 	}
 

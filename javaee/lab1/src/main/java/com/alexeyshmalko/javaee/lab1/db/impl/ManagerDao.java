@@ -1,16 +1,19 @@
 package com.alexeyshmalko.javaee.lab1.db.impl;
 
-import com.alexeyshmalko.javaee.lab1.LazyConst;
+import com.alexeyshmalko.javaee.lab1.db.Database;
 import com.alexeyshmalko.javaee.lab1.dao.Dao;
 import com.alexeyshmalko.javaee.lab1.entity.Manager;
-import com.alexeyshmalko.javaee.lab1.entity.Project;
+import com.alexeyshmalko.javaee.lab1.lazy.LazyFromDao;
 
 import java.sql.*;
 import java.util.*;
 
 public class ManagerDao extends Dao<Manager> {
-	public ManagerDao(Connection connection) {
+	private final Database db;
+
+	public ManagerDao(Database db, Connection connection) {
 		super(connection);
+		this.db = db;
 	}
 
 	@Override
@@ -44,14 +47,9 @@ public class ManagerDao extends Dao<Manager> {
 			value.name = resultSet.getString(2);
 		}
 
-		Long project_id = resultSet.getLong(3);
+		long project_id = resultSet.getLong(3);
 		if (project_id != 0) {
-			final Project project = new Project();
-			project.id = project_id;
-			project.name = resultSet.getString(4);
-			project.manager = value;
-
-			value.projects.add(new LazyConst<>(project));
+			value.projects.add(new LazyFromDao<>(db.projects, resultSet.getLong(3)));
 		}
 
 		return value;

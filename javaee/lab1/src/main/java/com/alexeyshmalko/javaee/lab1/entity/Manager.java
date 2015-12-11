@@ -1,6 +1,6 @@
 package com.alexeyshmalko.javaee.lab1.entity;
 
-import com.alexeyshmalko.javaee.lab1.LazyEntity;
+import com.alexeyshmalko.javaee.lab1.lazy.LazyEntity;
 import com.alexeyshmalko.javaee.lab1.dao.Entity;
 
 import java.util.ArrayList;
