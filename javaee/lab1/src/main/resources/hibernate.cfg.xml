@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+    <session-factory>
+        <property name="hibernate.show_sql">false</property>
+        <property name="hibernate.format_sql">true</property>
+        <property name="use_sql_comments">false</property>
+
+        <property name="hibernate.dialect">org.hibernate.dialect.PostgresPlusDialect</property>
+        <property name="hibernate.connection.driver_class">org.postgresql.Driver</property>
+        <property name="hibernate.connection.url">jdbc:postgresql://127.0.0.1:5432/javaee</property>
+        <property name="hibernate.connection.username">javaee</property>
+        <property name="hibernate.connection.password">javaee</property>
+
+        <mapping class="com.alexeyshmalko.javaee.lab1.entity.Project" />
+        <mapping class="com.alexeyshmalko.javaee.lab1.entity.Manager" />
+    </session-factory>
+</hibernate-configuration>

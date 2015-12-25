@@ -2,8 +2,11 @@ package com.alexeyshmalko.javaee.lab1.servlets;
 
 import com.alexeyshmalko.javaee.lab1.db.Database;
 import com.alexeyshmalko.javaee.lab1.db.DatabaseSingleton;
+import com.alexeyshmalko.javaee.lab1.entity.Manager;
 import com.alexeyshmalko.javaee.lab1.entity.Project;
 import com.alexeyshmalko.javaee.lab1.lazy.LazyFromDao;
+import com.alexeyshmalko.javaee.lab1.utils.SessionSingleton;
+import org.hibernate.Session;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -16,8 +19,6 @@ import java.sql.SQLException;
 
 @WebServlet(urlPatterns = {"/projects"})
 public class ProjectServlet extends HttpServlet {
-	private final Database db = DatabaseSingleton.db;
-
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		final PrintWriter writer = resp.getWriter();
@@ -34,17 +35,17 @@ public class ProjectServlet extends HttpServlet {
 				"</tr>"
 		);
 
-		try {
-			for (Project project : db.projects.findAll()) {
+		try (Session session = SessionSingleton.sessionFactory.openSession()) {
+			for (Object o : session.createCriteria(Project.class).list()) {
+				Project project = (Project)o;
+
 				writer.write("<tr>" +
 						"<td>" + project.id + "</td>" +
 						"<td>" + project.name + "</td>" +
-						"<td>" + project.manager.get().name + "</td>" +
+						"<td>" + project.manager.name + " (" + project.manager.id + ")</td>" +
 						"</tr>"
 				);
 			}
-		} catch (SQLException e) {
-			throw new ServletException(e);
 		}
 
 		writer.write("</table>");
@@ -60,14 +61,15 @@ public class ProjectServlet extends HttpServlet {
 
 	@Override
 	protected void doPost(final HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		final Project project = new Project();
-		project.name = req.getParameter("name");
-		project.manager = new LazyFromDao<>(db.managers, Long.parseLong(req.getParameter("manager")));
 
-		try {
-			db.projects.save(project);
-		} catch (SQLException e) {
-			throw new ServletException(e);
+		try (Session session = SessionSingleton.sessionFactory.openSession()) {
+			final Project project = new Project();
+			project.name = req.getParameter("name");
+			project.manager = session.get(Manager.class, Long.parseLong(req.getParameter("manager")));
+
+			session.getTransaction().begin();
+			session.persist(project);
+			session.getTransaction().commit();
 		}
 
 		resp.sendRedirect("projects");

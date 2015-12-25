@@ -16,7 +16,7 @@ public class TestProgrammerDao {
 	public void testAdd() throws SQLException {
 		Project project = new Project();
 		project.name = "test project";
-		project.manager = new LazyFromDao<>(db.managers, 1);
+		project.manager = db.managers.findOne(1);
 		db.projects.save(project);
 		assertNotNull(project.id);
 
@@ -42,7 +42,7 @@ public class TestProgrammerDao {
 	public void testModify() throws SQLException {
 		Project project = new Project();
 		project.name = "test project";
-		project.manager = new LazyFromDao<>(db.managers, 1);
+		project.manager = db.managers.findOne(1);
 		db.projects.save(project);
 		assertNotNull(project.id);
 

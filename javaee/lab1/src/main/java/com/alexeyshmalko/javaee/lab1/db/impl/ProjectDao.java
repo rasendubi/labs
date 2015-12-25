@@ -2,7 +2,6 @@ package com.alexeyshmalko.javaee.lab1.db.impl;
 
 import com.alexeyshmalko.javaee.lab1.dao.Dao;
 import com.alexeyshmalko.javaee.lab1.db.Database;
-import com.alexeyshmalko.javaee.lab1.entity.Programmer;
 import com.alexeyshmalko.javaee.lab1.entity.Project;
 import com.alexeyshmalko.javaee.lab1.lazy.LazyFromDao;
 
@@ -34,7 +33,7 @@ public class ProjectDao extends Dao<Project> {
 	@Override
 	protected void fillStatement(PreparedStatement statement, Project entity) throws SQLException {
 		statement.setString(1, entity.name);
-		statement.setLong(2, entity.manager.getId());
+		statement.setLong(2, entity.manager.id);
 	}
 
 	@Override
@@ -51,7 +50,7 @@ public class ProjectDao extends Dao<Project> {
 		if (value == null) {
 			value = new Project();
 			value.name = resultSet.getString(2);
-			value.manager = new LazyFromDao<>(db.managers, resultSet.getLong(3));
+			value.manager = db.managers.findOne(resultSet.getLong(3));
 		}
 
 		long programmer_id = resultSet.getLong(4);

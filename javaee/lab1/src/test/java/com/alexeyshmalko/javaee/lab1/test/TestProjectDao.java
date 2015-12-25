@@ -15,7 +15,7 @@ public class TestProjectDao {
 	public void testAdd() throws SQLException {
 		Project project = new Project();
 		project.name = "test project";
-		project.manager = new LazyFromDao<>(db.managers, 1);
+		project.manager = db.managers.findOne(1);
 
 		db.projects.save(project);
 		assertNotNull(project.id);
@@ -34,7 +34,7 @@ public class TestProjectDao {
 	public void testModify() throws SQLException {
 		Project project = new Project();
 		project.name = "test project";
-		project.manager = new LazyFromDao<>(db.managers, 1);
+		project.manager = db.managers.findOne(1);
 
 		db.projects.save(project);
 		assertNotNull(project.id);
@@ -49,7 +49,7 @@ public class TestProjectDao {
 
 		assertEquals(project.id, project2.id);
 		assertEquals("foobar", project2.name);
-		assertEquals(1, project2.manager.getId());
+		assertEquals((Long)1l, project2.manager.id);
 		assertTrue(project2.programmers.isEmpty());
 
 		db.projects.delete(project);
